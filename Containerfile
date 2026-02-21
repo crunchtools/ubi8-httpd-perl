@@ -3,6 +3,10 @@ FROM registry.access.redhat.com/ubi8/ubi-init:latest
 LABEL maintainer="fatherlinux <scott.mccarty@crunchtools.com>"
 LABEL description="UBI 8 base image with Apache httpd, mod_fcgid, Perl, and MariaDB for Request Tracker"
 
+# Register with RHSM to access full RHEL repos
+RUN subscription-manager register --activationkey=container_builds --org=6331445 && \
+    subscription-manager attach --auto
+
 RUN yum install -y \
     httpd \
     mod_fcgid \
@@ -14,6 +18,9 @@ RUN yum install -y \
     iputils \
     net-tools \
     && yum clean all
+
+# Unregister to avoid leaking entitlements in the image
+RUN subscription-manager unregister
 
 RUN systemctl enable httpd mariadb
 RUN systemctl disable systemd-update-utmp.service
